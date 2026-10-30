@@ -6,7 +6,6 @@ export const mongoConnect = async () => {
     console.log('Server succesfuly connected!');
   } catch {
     console.log('Interal Server Error!');
+    process.exit(1);
   }
 };
-
-
