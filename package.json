@@ -2,10 +2,11 @@
   "name": "murauto-api",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "server.js",
   "type": "module",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "nodemon src/server.js"
   },
   "repository": {
     "type": "git",
@@ -20,8 +21,12 @@
   "homepage": "https://github.com/luxqxqm/murauto-api#readme",
   "dependencies": {
     "cookie-parser": "^1.4.7",
+    "cors": "^2.8.6",
     "dotenv": "^18.0.9",
-    "express": "^5.3.0"
+    "express": "^5.3.0",
+    "mongoose": "^9.11.4",
+    "pino-http": "^11.0.0",
+    "pino-pretty": "^13.2.0"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
