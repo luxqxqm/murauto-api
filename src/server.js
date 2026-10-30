@@ -10,7 +10,7 @@ const port = process.env.PORT || 3000;
 
 app.use(logger);
 app.use(express.json());
-app.use(cors({ origin: 'localhost:3000', credentials: true })); // Потім треба буде поміняти на vercel фронтенда!
+app.use(cors({ origin: 'murauto-api.onrender.com', credentials: true })); // Потім треба буде поміняти на vercel фронтенда!
 
 await mongoConnect();
 
