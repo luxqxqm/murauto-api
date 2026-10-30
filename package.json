@@ -1,0 +1,27 @@
+{
+  "name": "murauto-api",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/luxqxqm/murauto-api.git"
+  },
+  "keywords": [],
+  "author": "DENIS <denasenuk@gmail.com>",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/luxqxqm/murauto-api/issues"
+  },
+  "homepage": "https://github.com/luxqxqm/murauto-api#readme",
+  "dependencies": {
+    "cookie-parser": "^1.4.7",
+    "dotenv": "^18.0.9",
+    "express": "^5.3.0",
+    "nodemon": "^3.1.14"
+  }
+}
