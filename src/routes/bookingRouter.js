@@ -1,11 +1,22 @@
 import { Router } from 'express';
 import { rateLimit } from 'express-rate-limit';
-import { createBooking, getSlots } from '../controllers/bookingController.js';
+import {
+  changeStatus,
+  createBooking,
+  getBookings,
+  getSlots,
+  updateBooking,
+} from '../controllers/bookingController.js';
+import { authenticate } from '../middlewares/authenticate.js';
 import { validate } from '../middlewares/validate.js';
 import {
+  changeStatusSchema,
   createBookingSchema,
+  listBookingsQuerySchema,
   slotsQuerySchema,
+  updateBookingSchema,
 } from '../validations/bookingValidation.js';
+import { idParamsSchema } from '../validations/commonValidation.js';
 
 // Protects the public form from spam: 5 requests per 15 minutes from one IP
 const createBookingLimiter = rateLimit({
@@ -24,4 +35,23 @@ bookingRouter.post(
   createBookingLimiter,
   validate({ body: createBookingSchema }),
   createBooking,
+);
+
+bookingRouter.get(
+  '/',
+  authenticate,
+  validate({ query: listBookingsQuerySchema }),
+  getBookings,
+);
+bookingRouter.patch(
+  '/:id/status',
+  authenticate,
+  validate({ params: idParamsSchema, body: changeStatusSchema }),
+  changeStatus,
+);
+bookingRouter.patch(
+  '/:id',
+  authenticate,
+  validate({ params: idParamsSchema, body: updateBookingSchema }),
+  updateBooking,
 );

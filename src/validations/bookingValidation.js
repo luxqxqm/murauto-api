@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { BOOKING_STATUSES } from '../models/booking.js';
 import { addDays, kyivDate } from '../services/slots.js';
 import { isRealDate, OBJECT_ID_REGEX, TIME_REGEX } from './commonValidation.js';
 
@@ -53,17 +54,28 @@ const phoneSchema = z
 // Only letters that exist on UA plates, e.g. AA1234BB
 const PLATE_REGEX = /^[ABCEHIKMOPTX]{2}\d{4}[ABCEHIKMOPTX]{2}$/;
 
+// "ва 1234 ке" -> "BA1234KE"; also used for the admin search
+export const normalizePlate = (plate) =>
+  plate
+    .replace(/[\s-]/g, '')
+    .toUpperCase()
+    .replace(/[АВЕІКМНОРСТХ]/g, (letter) => CYRILLIC_TO_LATIN[letter]);
+
 const plateSchema = z
   .string({ error: PLATE_ERROR })
-  .transform((plate) =>
-    plate
-      .replace(/[\s-]/g, '')
-      .toUpperCase()
-      .replace(/[АВЕІКМНОРСТХ]/g, (letter) => CYRILLIC_TO_LATIN[letter]),
-  )
+  .transform(normalizePlate)
   // Empty field in the form means "no plate"
   .refine((plate) => plate === '' || PLATE_REGEX.test(plate), PLATE_ERROR)
   .transform((plate) => plate || undefined);
+
+const timeSchema = z
+  .string({ error: TIME_ERROR })
+  .regex(TIME_REGEX, TIME_ERROR);
+
+const commentSchema = z
+  .string({ error: COMMENT_ERROR })
+  .trim()
+  .max(500, COMMENT_ERROR);
 
 export const slotsQuerySchema = z.object({
   date: bookingDateSchema,
@@ -73,7 +85,7 @@ export const slotsQuerySchema = z.object({
 export const createBookingSchema = z.object({
   serviceId: serviceIdSchema,
   date: bookingDateSchema,
-  time: z.string({ error: TIME_ERROR }).regex(TIME_REGEX, TIME_ERROR),
+  time: timeSchema,
   clientName: z
     .string({ error: NAME_ERROR })
     .trim()
@@ -88,10 +100,52 @@ export const createBookingSchema = z.object({
     .min(2, CAR_ERROR)
     .max(40, CAR_ERROR),
   plate: plateSchema.optional(),
-  comment: z
-    .string({ error: COMMENT_ERROR })
-    .trim()
-    .max(500, COMMENT_ERROR)
+  comment: commentSchema
     .optional()
     .transform((comment) => comment || undefined),
 });
+
+const PAGINATION_ERROR = 'Невірні параметри пагінації';
+
+// Query values are strings, so numbers are coerced: "2" -> 2
+export const listBookingsQuerySchema = z.object({
+  date: z
+    .string({ error: DATE_ERROR })
+    .refine(isRealDate, DATE_ERROR)
+    .optional(),
+  status: z.enum(BOOKING_STATUSES, { error: 'Невірний статус' }).optional(),
+  // Phone or plate, any part of it
+  search: z.string().trim().max(20).optional(),
+  page: z.coerce
+    .number({ error: PAGINATION_ERROR })
+    .int(PAGINATION_ERROR)
+    .min(1, PAGINATION_ERROR)
+    .default(1),
+  limit: z.coerce
+    .number({ error: PAGINATION_ERROR })
+    .int(PAGINATION_ERROR)
+    .min(1, PAGINATION_ERROR)
+    .max(50, PAGINATION_ERROR)
+    .default(20),
+});
+
+export const changeStatusSchema = z.object({
+  status: z.enum(BOOKING_STATUSES, { error: 'Недопустима зміна статусу' }),
+});
+
+// Move to another time (date and time together) and/or change the comment
+export const updateBookingSchema = z
+  .object({
+    date: bookingDateSchema,
+    time: timeSchema,
+    // "" clears the comment
+    comment: commentSchema,
+  })
+  .partial()
+  .refine((data) => (data.date === undefined) === (data.time === undefined), {
+    message: 'Вкажіть і дату, і час',
+    path: ['time'],
+  })
+  .refine((data) => Object.keys(data).length > 0, {
+    message: 'Немає даних для оновлення',
+  });
