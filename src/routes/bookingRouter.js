@@ -1,13 +1,14 @@
 import { Router } from 'express';
-import { rateLimit } from 'express-rate-limit';
 import {
   changeStatus,
   createBooking,
+  createManualBooking,
   getBookings,
   getSlots,
   updateBooking,
 } from '../controllers/bookingController.js';
 import { authenticate } from '../middlewares/authenticate.js';
+import { createBookingLimiter } from '../middlewares/rateLimiters.js';
 import { validate } from '../middlewares/validate.js';
 import {
   changeStatusSchema,
@@ -17,15 +18,6 @@ import {
   updateBookingSchema,
 } from '../validations/bookingValidation.js';
 import { idParamsSchema } from '../validations/commonValidation.js';
-
-// Protects the public form from spam: 5 requests per 15 minutes from one IP
-const createBookingLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  limit: 5,
-  standardHeaders: 'draft-8',
-  legacyHeaders: false,
-  message: { message: 'Забагато спроб запису. Спробуйте через 15 хвилин' },
-});
 
 export const bookingRouter = Router();
 
@@ -37,6 +29,12 @@ bookingRouter.post(
   createBooking,
 );
 
+bookingRouter.post(
+  '/manual',
+  authenticate,
+  validate({ body: createBookingSchema }),
+  createManualBooking,
+);
 bookingRouter.get(
   '/',
   authenticate,

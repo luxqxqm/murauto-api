@@ -37,7 +37,8 @@ export const getSlots = async (req, res) => {
   res.status(200).json({ date, slots });
 };
 
-export const createBooking = async (req, res) => {
+// source "site": the client's form; "phone": the owner adds it himself after a call
+const create = async (req, res, source) => {
   const { serviceId, date, time, ...client } = req.body;
 
   const service = await Service.findOne({ _id: serviceId, isActive: true });
@@ -62,16 +63,23 @@ export const createBooking = async (req, res) => {
     service: service._id,
     startAt: slot.startAt,
     endAt: new Date(slot.startAt.getTime() + service.durationMin * MINUTE_MS),
-    source: 'site',
+    source,
   });
 
-  // Not awaited: the client gets the answer right away, a Telegram failure is only logged
-  notifyNewBooking(booking, service).catch((err) =>
-    console.error('Telegram notification failed:', err.message),
-  );
+  // The owner doesn't need a notification about a booking he added himself.
+  // Not awaited: the client gets the answer right away, a Telegram failure is only logged.
+  if (source === 'site') {
+    notifyNewBooking(booking, service).catch((err) =>
+      console.error('Telegram notification failed:', err.message),
+    );
+  }
 
   res.status(201).json(booking);
 };
+
+export const createBooking = (req, res) => create(req, res, 'site');
+
+export const createManualBooking = (req, res) => create(req, res, 'phone');
 
 export const getBookings = async (req, res) => {
   const { date, status, search, page, limit } = req.query;
