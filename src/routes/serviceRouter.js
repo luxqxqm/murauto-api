@@ -1,7 +1,9 @@
 import { Router } from 'express';
 import {
+  activateService,
   createService,
   deactivateService,
+  getAllServices,
   getServices,
   updateService,
 } from '../controllers/serviceController.js';
@@ -16,6 +18,7 @@ import {
 export const serviceRouter = Router();
 
 serviceRouter.get('/', getServices);
+serviceRouter.get('/all', authenticate, getAllServices);
 serviceRouter.post(
   '/',
   authenticate,
@@ -33,4 +36,10 @@ serviceRouter.patch(
   authenticate,
   validate({ params: idParamsSchema }),
   deactivateService,
+);
+serviceRouter.patch(
+  '/:id/activate',
+  authenticate,
+  validate({ params: idParamsSchema }),
+  activateService,
 );

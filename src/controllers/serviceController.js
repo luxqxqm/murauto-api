@@ -75,11 +75,16 @@ export const updateService = async (req, res) => {
   res.status(200).json(service);
 };
 
-// No physical delete: old bookings still reference the service
-export const deactivateService = async (req, res) => {
+// For the admin panel: inactive services too
+export const getAllServices = async (req, res) => {
+  const services = await Service.find().sort({ sortOrder: 1, name: 1 });
+  res.status(200).json(services);
+};
+
+const setActive = async (req, res, isActive) => {
   const service = await Service.findByIdAndUpdate(
     req.params.id,
-    { isActive: false },
+    { isActive },
     { returnDocument: 'after' },
   );
   if (!service) {
@@ -87,4 +92,17 @@ export const deactivateService = async (req, res) => {
   }
 
   res.status(200).json(service);
+};
+
+// No physical delete: old bookings still reference the service
+export const deactivateService = (req, res) => setActive(req, res, false);
+
+export const activateService = async (req, res) => {
+  // The slot step could have changed while the service was off
+  const service = await Service.findById(req.params.id);
+  if (service && !(await fitsSlotStep(service.durationMin))) {
+    return res.status(400).json(DURATION_ERROR);
+  }
+
+  return setActive(req, res, true);
 };
