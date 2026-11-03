@@ -23,5 +23,7 @@ const bookingSchema = new Schema(
 
 // Slots and the admin list always search bookings by time
 bookingSchema.index({ startAt: 1 });
+// Admin search by phone
+bookingSchema.index({ phone: 1 });
 
 export const Booking = model('Booking', bookingSchema);
