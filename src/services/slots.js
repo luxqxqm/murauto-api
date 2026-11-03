@@ -56,6 +56,26 @@ export const weekDayOf = (date) => {
   return WEEK_DAYS[(sundayFirst + 6) % 7];
 };
 
+// "2026-11-05" + 1 -> "2026-11-06"
+export const addDays = (date, days) => {
+  const [year, month, day] = date.split('-').map(Number);
+  return new Date(Date.UTC(year, month - 1, day + days))
+    .toISOString()
+    .slice(0, 10);
+};
+
+// Calendar date in Kyiv at the given moment, "YYYY-MM-DD"
+export const kyivDate = (moment) => {
+  const { year, month, day } = Object.fromEntries(
+    kyivFormatter.formatToParts(moment).map((part) => [part.type, part.value]),
+  );
+  return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+};
+
+export const isWorkingDay = (settings, date) =>
+  !settings.daysOff.includes(date) &&
+  !settings.workingHours[weekDayOf(date)].isDayOff;
+
 // Max number of bookings that run at the same moment inside [start, end).
 // A slot is free while this is less than the number of posts.
 const maxParallel = (bookings, start, end) => {
@@ -85,10 +105,11 @@ const maxParallel = (bookings, start, end) => {
  * Returns [{ time: "09:00", startAt: Date (UTC) }]
  */
 export const getFreeSlots = (settings, durationMin, bookings, date) => {
-  const day = settings.workingHours[weekDayOf(date)];
-  if (settings.daysOff.includes(date) || day.isDayOff) {
+  if (!isWorkingDay(settings, date)) {
     return [];
   }
+
+  const day = settings.workingHours[weekDayOf(date)];
 
   const activeBookings = bookings.filter(
     (booking) => booking.status !== 'canceled',

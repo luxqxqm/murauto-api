@@ -1,18 +1,11 @@
 import { z } from 'zod';
 import { SLOT_STEPS, WEEK_DAYS } from '../models/settings.js';
+import { isRealDate, TIME_REGEX } from './commonValidation.js';
 
 const HOURS_ERROR = 'Час відкриття має бути раніше за час закриття';
 const STEP_ERROR = 'Оберіть крок слоту';
 const POSTS_ERROR = 'Вкажіть кількість постів (1–10)';
 const DATE_ERROR = 'Невірна дата';
-
-const TIME_REGEX = /^([01]\d|2[0-3]):[0-5]\d$/;
-
-// "YYYY-MM-DD" that really exists (no 2026-02-30)
-const isRealDate = (value) => {
-  const date = new Date(`${value}T00:00:00Z`);
-  return !isNaN(date) && date.toISOString().slice(0, 10) === value;
-};
 
 const daySchema = z
   .object({
