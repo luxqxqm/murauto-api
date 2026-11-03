@@ -7,6 +7,7 @@ import { globalErrorHandler } from './middlewares/globalErrorHandler.js';
 import { healthRouter } from './routes/healthRouter.js';
 import { authRouter } from './routes/authRouter.js';
 import { serviceRouter } from './routes/serviceRouter.js';
+import { settingsRouter } from './routes/settingsRouter.js';
 
 export const app = express();
 
@@ -18,6 +19,7 @@ app.use(cookieParser());
 app.use('/api/health', healthRouter);
 app.use('/api/auth', authRouter);
 app.use('/api/services', serviceRouter);
+app.use('/api/settings', settingsRouter);
 
 app.use(errorHandler);
 app.use(globalErrorHandler);
