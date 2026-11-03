@@ -8,8 +8,13 @@ import { healthRouter } from './routes/healthRouter.js';
 import { authRouter } from './routes/authRouter.js';
 import { serviceRouter } from './routes/serviceRouter.js';
 import { settingsRouter } from './routes/settingsRouter.js';
+import { bookingRouter } from './routes/bookingRouter.js';
 
 export const app = express();
+
+// Render puts one proxy in front of the app; without this req.ip is the proxy's IP
+// and the rate limit would block all clients together
+app.set('trust proxy', 1);
 
 app.use(logger);
 app.use(cors({ origin: process.env.CLIENT_URL, credentials: true }));
@@ -20,6 +25,7 @@ app.use('/api/health', healthRouter);
 app.use('/api/auth', authRouter);
 app.use('/api/services', serviceRouter);
 app.use('/api/settings', settingsRouter);
+app.use('/api/bookings', bookingRouter);
 
 app.use(errorHandler);
 app.use(globalErrorHandler);
