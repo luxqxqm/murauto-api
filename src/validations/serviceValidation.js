@@ -19,7 +19,7 @@ export const createServiceSchema = z.object({
     .min(0, PRICE_ERROR)
     .max(100000, PRICE_ERROR),
   isPriceFrom: z.boolean().optional(),
-  // TODO (Day 6): durationMin must also be a multiple of the slot step from Settings
+  // Multiple of the slot step is checked in the controller (the step is in Settings)
   durationMin: z
     .number({ error: DURATION_ERROR })
     .int(DURATION_ERROR)
@@ -27,3 +27,10 @@ export const createServiceSchema = z.object({
     .max(480, DURATION_ERROR),
   sortOrder: z.number().int().optional(),
 });
+
+// Same rules, but every field is optional; an empty body makes no sense
+export const updateServiceSchema = createServiceSchema
+  .partial()
+  .refine((data) => Object.keys(data).length > 0, {
+    message: 'Немає даних для оновлення',
+  });
