@@ -1,6 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
+import helmet from 'helmet';
 import { logger } from './middlewares/logger.js';
 import { errorHandler } from './middlewares/errorHandler.js';
 import { globalErrorHandler } from './middlewares/globalErrorHandler.js';
@@ -17,6 +18,8 @@ export const app = express();
 app.set('trust proxy', 1);
 
 app.use(logger);
+// Security headers (nosniff, no X-Powered-By, HSTS, etc.)
+app.use(helmet());
 app.use(cors({ origin: process.env.CLIENT_URL, credentials: true }));
 app.use(express.json());
 app.use(cookieParser());
